@@ -56,6 +56,7 @@ jobs:
       organization: ${{ inputs.organization }}
       repository: ${{ inputs.repository }}
     secrets:
+      aws-region: ap-southeast-1
       ecr-region: ${{ secrets.ecr-region }}
       ecr-iam-role: ${{ secrets.ecr-iam-role }}
       registry: ${{ secrets.registry }}
