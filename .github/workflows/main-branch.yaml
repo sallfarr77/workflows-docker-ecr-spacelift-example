@@ -65,10 +65,6 @@ jobs:
       ecr-iam-role: ${{ secrets.ECR_IAM_ROLE }}
       spacelift-api-key-id: ${{ secrets.SPACELIFT_API_KEY_ID }}
       spacelift-api-key-secret: ${{ secrets.SPACELIFT_API_KEY_SECRET }}
-    # Add a unique concurrency group for the 'do' job
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-do-job
-      cancel-in-progress: true
 
   ci:
     uses: cloudposse/github-actions-workflows/.github/workflows/ci-dockerized-app-build.yml@main
