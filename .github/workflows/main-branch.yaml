@@ -1,4 +1,3 @@
-
 on:
   push:
     branches: [ main ]
@@ -61,13 +60,6 @@ jobs:
       ecr-iam-role: ${{ secrets.ecr-iam-role }}
       registry: ${{ secrets.registry }}
       secret-outputs-passphrase: ${{ secrets.secret-outputs-passphrase }}
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4.0.2
-        with:
-          aws-region: ${{ secrets.ecr-region }}
-          role-to-assume: ${{ secrets.ecr-iam-role }}
-          audience: sts.amazonaws.com
 
   cd:
     uses: cloudposse/github-actions-workflows/.github/workflows/cd-ecs.yml@main
@@ -83,13 +75,6 @@ jobs:
       github-private-actions-pat: "${{ secrets.github-private-actions-pat }}"
       spacelift-api-key-id: "${{ secrets.spacelift-api-key-id }}"
       spacelift-api-key-secret: "${{ secrets.spacelift-api-key-secret }}"
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4.0.2
-        with:
-          aws-region: ${{ secrets.ecr-region }} # Pass the region here
-          role-to-assume: ${{ secrets.ecr-iam-role }}
-          audience: sts.amazonaws.com
 
   release:
     uses:  cloudposse/github-actions-workflows/.github/workflows/controller-draft-release.yml@main
