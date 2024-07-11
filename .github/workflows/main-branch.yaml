@@ -1,3 +1,5 @@
+name: CI/CD Pipeline
+
 on:
   push:
     branches: [ main ]
@@ -77,7 +79,16 @@ jobs:
       spacelift-api-key-secret: "${{ secrets.spacelift-api-key-secret }}"
 
   release:
-    uses:  cloudposse/github-actions-workflows/.github/workflows/controller-draft-release.yml@main
+    uses: cloudposse/github-actions-workflows/.github/workflows/controller-draft-release.yml@main
     needs: [ cd ]
     secrets:
       github-private-actions-pat: ${{ secrets.github-private-actions-pat }}
+
+  configure-aws-credentials:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-region: ${{ secrets.ecr-region }} # Provide the aws-region input here
+          role-to-assume: ${{ secrets.ecr-iam-role }}
