@@ -15,10 +15,16 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build and Push Docker Image to ECR
-        uses: cloudposse/github-actions-workflows/.github/workflows/ci-dockerized-app-build.yml@main  # This should be moved to the 'uses' key of the 'build' job
+        uses: cloudposse/github-actions-workflows/.github/workflows/ci-dockerized-app-build.yml@main  # Move to 'uses' key of 'build' job
         with:
           organization: ${{ github.event.repository.owner.login }}
           repository: ${{ github.event.repository.name }}
+        env:
+          AWS_REGION: ap-southeast-1
+          ECR_REGION: ${{ secrets.ECR_REGION }}
+          ECR_IAM_ROLE: ${{ secrets.ECR_IAM_ROLE }}
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          GHA_SECRET_OUTPUT_PASSPHRASE: ${{ secrets.GHA_SECRET_OUTPUT_PASSPHRASE }}
 
   deploy:
     name: Deploy Docker Image to ECS
@@ -30,13 +36,18 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Deploy Docker Image to ECS
-        uses: cloudposse/github-actions-workflows/.github/workflows/cd-ecs.yml@main  # This should be moved to the 'uses' key of the 'deploy' job
+        uses: cloudposse/github-actions-workflows/.github/workflows/cd-ecs.yml@main  # Move to 'uses' key of 'deploy' job
         with:
           image: ${{ needs.build.outputs.image }}
           tag: ${{ needs.build.outputs.tag }}
           repository: ${{ github.event.repository.name }}
           environment: dev
           spacelift-organization: ${{ github.event.repository.owner.login }}
+        env:
+          GHA_SECRET_OUTPUT_PASSPHRASE: ${{ secrets.GHA_SECRET_OUTPUT_PASSPHRASE }}
+          GITHUB_PRIVATE_ACTIONS_PAT: ${{ secrets.GITHUB_PRIVATE_ACTIONS_PAT }}
+          SPACELIFT_API_KEY_ID: ${{ secrets.SPACELIFT_API_KEY_ID }}
+          SPACELIFT_API_KEY_SECRET: ${{ secrets.SPACELIFT_API_KEY_SECRET }}
 
   release:
     name: Draft New Release
@@ -48,7 +59,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Draft New Release
-        uses: cloudposse/github-actions-workflows/.github/workflows/controller-draft-release.yml@main  # This should be moved to the 'uses' key of the 'release' job
+        uses: cloudposse/github-actions-workflows/.github/workflows/controller-draft-release.yml@main  # Move to 'uses' key of 'release' job
+        env:
+          GITHUB_PRIVATE_ACTIONS_PAT: ${{ secrets.GITHUB_PRIVATE_ACTIONS_PAT }}
 
 env:
   GHA_SECRET_OUTPUT_PASSPHRASE: ${{ secrets.GHA_SECRET_OUTPUT_PASSPHRASE }}
