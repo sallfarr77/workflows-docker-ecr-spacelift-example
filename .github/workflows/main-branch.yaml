@@ -14,8 +14,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Build and Push Docker Image to ECR
-        uses: cloudposse/github-actions-workflows/.github/workflows/ci-dockerized-app-build.yml@main  # Move to 'uses' key of 'build' job
+      - name: Build Docker Image and Push to ECR
+        uses: cloudposse/github-actions-workflows/.github/workflows/ci-dockerized-app-build.yml@main
         with:
           organization: ${{ github.event.repository.owner.login }}
           repository: ${{ github.event.repository.name }}
@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Deploy Docker Image to ECS
-        uses: cloudposse/github-actions-workflows/.github/workflows/cd-ecs.yml@main  # Move to 'uses' key of 'deploy' job
+        uses: cloudposse/github-actions-workflows/.github/workflows/cd-ecs.yml@main
         with:
           image: ${{ needs.build.outputs.image }}
           tag: ${{ needs.build.outputs.tag }}
@@ -59,7 +59,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Draft New Release
-        uses: cloudposse/github-actions-workflows/.github/workflows/controller-draft-release.yml@main  # Move to 'uses' key of 'release' job
+        uses: cloudposse/github-actions-workflows/.github/workflows/controller-draft-release.yml@main
         env:
           GITHUB_PRIVATE_ACTIONS_PAT: ${{ secrets.GITHUB_PRIVATE_ACTIONS_PAT }}
 
