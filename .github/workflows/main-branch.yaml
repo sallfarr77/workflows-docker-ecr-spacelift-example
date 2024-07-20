@@ -50,11 +50,11 @@ jobs:
       - name: Draft New Release
         uses: cloudposse/github-actions-workflows/.github/workflows/controller-draft-release.yml@main
 
-    env:
-      GHA_SECRET_OUTPUT_PASSPHRASE: ${{ secrets.GHA_SECRET_OUTPUT_PASSPHRASE }}
-      ECR_REGION: ${{ secrets.ECR_REGION }}
-      ECR_IAM_ROLE: ${{ secrets.ECR_IAM_ROLE }}
-      ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-      GITHUB_PRIVATE_ACTIONS_PAT: ${{ secrets.GITHUB_PRIVATE_ACTIONS_PAT }}
-      SPACELIFT_API_KEY_ID: ${{ secrets.SPACELIFT_API_KEY_ID }}
-      SPACELIFT_API_KEY_SECRET: ${{ secrets.SPACELIFT_API_KEY_SECRET }}
+  env:
+    GHA_SECRET_OUTPUT_PASSPHRASE: ${{ secrets.GHA_SECRET_OUTPUT_PASSPHRASE }}
+    ECR_REGION: ${{ secrets.ECR_REGION }}
+    ECR_IAM_ROLE: ${{ secrets.ECR_IAM_ROLE }}
+    ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+    GITHUB_PRIVATE_ACTIONS_PAT: ${{ secrets.GITHUB_PRIVATE_ACTIONS_PAT }}
+    SPACELIFT_API_KEY_ID: ${{ secrets.SPACELIFT_API_KEY_ID }}
+    SPACELIFT_API_KEY_SECRET: ${{ secrets.SPACELIFT_API_KEY_SECRET }}
