@@ -1,84 +1,60 @@
+name: Main Workflow
+
 on:
   push:
-    branches: [ main ]
-  workflow_call:
-    inputs:
-      organization:
-        description: "Repository owner organization (ex. acme for repo acme/example)"
-        required: false
-        default: ${{ github.event.repository.owner.login }}
-        type: string
-      repository:
-        description: "Repository name (ex. example for repo acme/example)"
-        required: false
-        default: ${{ github.event.repository.name }}
-        type: string
-      spacelift-organization:
-        description: "Spacelift organization name"
-        type: string
-        required: true
-    secrets:
-      secret-outputs-passphrase:
-        description: "Passphrase to encrypt/decrypt secret outputs with gpg. For more information [read](https://github.com/cloudposse/github-action-secret-outputs)"
-        required: true
-      registry:
-        description: "ECR ARN"
-        required: true
-      github-private-actions-pat:
-        description: "Github PAT allow to pull private repos"
-        required: true
-      ecr-region:
-        description: "ECR AWS region"
-        required: true
-      ecr-iam-role:
-        description: "IAM Role ARN provide ECR write/read access"
-        required: true
-      spacelift-api-key-id:
-        description: "Spacelift API Key ID"
-        required: true
-      spacelift-api-key-secret:
-        description: "Spacelift API Key Secret"
-        required: true
-
-permissions:
-  contents: write
-  id-token: write
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-  ci:
-    uses: cloudposse/github-actions-workflows/.github/workflows/ci-dockerized-app-build.yml@main
-    with:
-      organization: ${{ inputs.organization }}
-      repository: ${{ inputs.repository }}
-    secrets:
-      aws-region: ap-southeast-1
-      ecr-region: ${{ secrets.ecr-region }}
-      ecr-iam-role: ${{ secrets.ecr-iam-role }}
-      registry: ${{ secrets.registry }}
-      secret-outputs-passphrase: ${{ secrets.secret-outputs-passphrase }}
+      - name: Build and Push Docker Image to ECR
+        uses: cloudposse/github-actions-workflows/.github/workflows/ci-dockerized-app-build.yml@main
+        with:
+          organization: ${{ github.event.repository.owner.login }}
+          repository: ${{ github.event.repository.name }}
 
-  cd:
-    uses: cloudposse/github-actions-workflows/.github/workflows/cd-ecs.yml@main
-    needs: [ ci ]
-    with:
-      image: ${{ needs.ci.outputs.image }}
-      tag: ${{ needs.ci.outputs.tag }}
-      repository: ${{ inputs.repository }}
-      environment: dev
-      spacelift-organization: ${{ inputs.spacelift-organization }}
-    secrets:
-      secret-outputs-passphrase: "${{ secrets.secret-outputs-passphrase }}"
-      github-private-actions-pat: "${{ secrets.github-private-actions-pat }}"
-      spacelift-api-key-id: "${{ secrets.spacelift-api-key-id }}"
-      spacelift-api-key-secret: "${{ secrets.spacelift-api-key-secret }}"
+  deploy:
+    name: Deploy Docker Image to ECS
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Deploy Docker Image to ECS
+        uses: cloudposse/github-actions-workflows/.github/workflows/cd-ecs.yml@main
+        with:
+          image: ${{ needs.build.outputs.image }}
+          tag: ${{ needs.build.outputs.tag }}
+          repository: ${{ github.event.repository.name }}
+          environment: dev
+          spacelift-organization: ${{ github.event.repository.owner.login }}
 
   release:
-    uses:  cloudposse/github-actions-workflows/.github/workflows/controller-draft-release.yml@main
-    needs: [ cd ]
-    secrets:
-      github-private-actions-pat: ${{ secrets.github-private-actions-pat }}
+    name: Draft New Release
+    runs-on: ubuntu-latest
+    needs:
+      - deploy
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Draft New Release
+        uses: cloudposse/github-actions-workflows/.github/workflows/controller-draft-release.yml@main
+
+    env:
+      GHA_SECRET_OUTPUT_PASSPHRASE: ${{ secrets.GHA_SECRET_OUTPUT_PASSPHRASE }}
+      ECR_REGION: ${{ secrets.ECR_REGION }}
+      ECR_IAM_ROLE: ${{ secrets.ECR_IAM_ROLE }}
+      ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+      GITHUB_PRIVATE_ACTIONS_PAT: ${{ secrets.GITHUB_PRIVATE_ACTIONS_PAT }}
+      SPACELIFT_API_KEY_ID: ${{ secrets.SPACELIFT_API_KEY_ID }}
+      SPACELIFT_API_KEY_SECRET: ${{ secrets.SPACELIFT_API_KEY_SECRET }}
