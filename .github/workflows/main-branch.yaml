@@ -89,7 +89,7 @@ jobs:
           github-private-actions-pat: ${{ secrets.github-private-actions-pat }}
           spacelift-api-key-id: ${{ secrets.spacelift-api-key-id }}
           spacelift-api-key-secret: ${{ secrets.spacelift-api-key-secret }}
-
+          
   release:
     runs-on: ubuntu-latest
     needs: cd
